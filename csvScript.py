@@ -23,8 +23,8 @@ def printContent(fileArg):
 	objectTypeCol = "temp"
 	updateCol = " "
 	objectNameCol = " "
-	subobjectTypeCol = " "
-	subObjectNameCol = " "
+	subobjectTypeCol = "temp"
+	subObjectNameCol = "temp"
 	with open(fileArg, 'r') as f:
 		fileContents = f.read()
 
@@ -49,9 +49,9 @@ def printContent(fileArg):
 					data.append(updateCol)
 					data.append(objectNameCol)
 					flag = 0
-				else:
-					data.append("nop")
 			if(len(data) > 2):
+				data.append(subobjectTypeCol)
+				data.append(subobjectNameCol)
 				csvWriter.writerow(data)
 
 		print(moduleCol)
