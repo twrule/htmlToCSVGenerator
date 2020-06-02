@@ -20,6 +20,11 @@ def main(filePath):
 # Opens file in directory and uses beautiful soup to find the module Column
 def printContent(fileArg):
 	moduleCol = " "
+	objectTypeCol = "temp"
+	updateCol = " "
+	objectNameCol = " "
+	subobjectTypeCol = " "
+	subObjectNameCol = " "
 	with open(fileArg, 'r') as f:
 		fileContents = f.read()
 
@@ -29,6 +34,25 @@ def printContent(fileArg):
 		if tempModuleCol is None:
 			return
 		moduleCol = moduleColSplitter(tempModuleCol.text)
+
+		for tr in soup.find_all('tr'):
+			flag = 0;
+			data = []
+			data.append(moduleCol)
+			data.append(objectTypeCol)
+			for td in tr.find_all('td'):
+				if(len(data) == 2 and flag == 0):
+					objectNameCol = td.text.strip()
+					flag = 1;
+				elif(len(data) == 2 and flag == 1):
+					updateCol = updateColSplitter(td.text.strip())
+					data.append(updateCol)
+					data.append(objectNameCol)
+					flag = 0
+				else:
+					data.append("nop")
+			if(len(data) > 2):
+				csvWriter.writerow(data)
 
 		print(moduleCol)
 
@@ -40,20 +64,24 @@ def moduleColSplitter(temp):
 	moduleCol = tempModuleCol[0]
 	return moduleCol
 
+def updateColSplitter(change):
+	updateCol = change.split(" ", 1)
+	return updateCol[0] 
 
 
 
 
 
+outFile = sys.argv[1] + "CSV.csv"
+colHeaders = ["Module", "Object_Type", "Update", "Object_Name", 
+	"Subobject_Type", "Subobject_Name"]
+csvWriter = csv.writer(open(outFile, 'w'))
+csvWriter.writerow(colHeaders)
 
-outFileName = sys.argv[1] + "CSV.csv"
-
-outFile = open(outFileName, 'w')
-outFile.write("dog")
 # Gets commandLine Arg
 # 
 # Folder containing all relevant files must be in the same 
 #	folder that the script is located
 main(sys.argv[1])
-outFile.write("cat\n")
-outFile.close()
+
+csvWriter.close()
