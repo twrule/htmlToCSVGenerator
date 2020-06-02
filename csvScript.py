@@ -1,5 +1,4 @@
 import sys, os
-import requests
 from bs4 import BeautifulSoup
 
 def main(filePath):
@@ -10,15 +9,41 @@ def main(filePath):
 	# Creates a list of everything in the directory
 	dir_list = os.listdir(directory)
 
+	dir_list.sort()
+
 	# iterates through every file in the directory
-	for file in dir_list[1:]:
+	# when I run on my computer must start at second index, 0 index 
+	# 	is .DS_Store and 1 index is .txt
+	for file in dir_list[2:]:
 		printContent(dir_path + file)
 
-#prints content of specific file
+# Opens file in directory and uses beautiful soup to find the productCol row
 def printContent(fileArg):
 	with open(fileArg, 'r') as f:
-		f_contents = f.read()
-		print(f_contents)
+		fileContents = f.read()
+
+		soup = BeautifulSoup(fileContents, 'html.parser')
+
+		tempProductCol = soup.find(lambda tag:tag.name=="p" and "Product:" in tag.text)
+		if tempProductCol is None:
+			return
+		productCol = productColSplitter(tempProductCol.text)
+
+		print(productCol)
+
+
+
+def productColSplitter(temp):
+	productCol = temp[8:]
+	productCols = productCol.split(" ", 1)
+	productCol = productCols[0]
+	return productCol
+
+
+
+
+
+
 
 outFileName = sys.argv[1] + "CSV.csv"
 
