@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, csv
 from bs4 import BeautifulSoup
 
 def main(filePath):
@@ -17,27 +17,28 @@ def main(filePath):
 	for file in dir_list[2:]:
 		printContent(dir_path + file)
 
-# Opens file in directory and uses beautiful soup to find the productCol row
+# Opens file in directory and uses beautiful soup to find the module Column
 def printContent(fileArg):
+	moduleCol = " "
 	with open(fileArg, 'r') as f:
 		fileContents = f.read()
 
 		soup = BeautifulSoup(fileContents, 'html.parser')
 
-		tempProductCol = soup.find(lambda tag:tag.name=="p" and "Product:" in tag.text)
-		if tempProductCol is None:
+		tempModuleCol = soup.find(lambda tag:tag.name=="p" and "Product:" in tag.text)
+		if tempModuleCol is None:
 			return
-		productCol = productColSplitter(tempProductCol.text)
+		moduleCol = moduleColSplitter(tempModuleCol.text)
 
-		print(productCol)
+		print(moduleCol)
 
 
 # Stome string manipulation to Parse and get correct productName
-def productColSplitter(temp):
-	productCol = temp[8:]
-	productCols = productCol.split(" ", 1)
-	productCol = productCols[0]
-	return productCol
+def moduleColSplitter(temp):
+	moduleCol = temp[8:]
+	tempModuleCol = moduleCol.split(" ", 1)
+	moduleCol = tempModuleCol[0]
+	return moduleCol
 
 
 
