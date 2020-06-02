@@ -1,9 +1,17 @@
-import sys
+import sys, os
 
 def main(filePath):
-	print("Hello World")
-	print(filePath)
-	f = open("../../../Desktop/12.1.3_12.2.9/12.1.3_12.2.9_products.txt", "r")
-	print(f.read())
+	directory = filePath
+
+	dir_path = os.getcwd() + "/" + directory
+	dir_list = os.listdir(directory)
+
+	for file in dir_list:
+		printContent(dir_path + "/" + file)
+
+def printContent(fileArg):
+	with open(fileArg, 'r') as f:
+		f_contents = f.read()
+		print(f_contents)
 
 main(sys.argv[1])
