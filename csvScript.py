@@ -32,7 +32,7 @@ def printContent(fileArg):
 		print(productCol)
 
 
-
+# Stome string manipulation to Parse and get correct productName
 def productColSplitter(temp):
 	productCol = temp[8:]
 	productCols = productCol.split(" ", 1)
