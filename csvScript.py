@@ -23,8 +23,8 @@ def printContent(fileArg):
 	objectTypeCol = "temp"
 	updateCol = " "
 	objectNameCol = " "
-	subobjectTypeCol = "temp"
-	subObjectNameCol = "temp"
+	subobjectTypeCol = ""
+	subobjectNameCol = ""
 	with open(fileArg, 'r') as f:
 		fileContents = f.read()
 
@@ -36,6 +36,11 @@ def printContent(fileArg):
 		moduleCol = moduleColSplitter(tempModuleCol.text)
 
 		for tr in soup.find_all('tr'):
+			objTyList = []
+			for th in tr.find_all('th'):
+				objTyList.append(th.text)
+			if(len(objTyList) > 0):
+				objectTypeCol = objTyList[0].replace(" ", "_")
 			flag = 0;
 			data = []
 			data.append(moduleCol)
@@ -45,7 +50,14 @@ def printContent(fileArg):
 					objectNameCol = td.text.strip()
 					flag = 1;
 				elif(len(data) == 2 and flag == 1):
-					updateCol = updateColSplitter(td.text.strip())
+					updateColChecker = updateColSplitter(td.text.strip())
+					if(updateColChecker[0] != "Added" and updateColChecker[0] != "Changed" and updateColChecker[0] != "Removed"):
+						if(updateColChecker[1] == "Changes"):
+							updateCol = "Changed"
+						else:
+							updateCol = updateColChecker[1]
+					else:
+						updateCol = updateColChecker[0]
 					data.append(updateCol)
 					data.append(objectNameCol)
 					flag = 0
@@ -65,8 +77,8 @@ def moduleColSplitter(temp):
 	return moduleCol
 
 def updateColSplitter(change):
-	updateCol = change.split(" ", 1)
-	return updateCol[0] 
+	updateCol = change.split(" ", 2)
+	return updateCol
 
 
 
