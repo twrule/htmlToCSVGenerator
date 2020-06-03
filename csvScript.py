@@ -15,32 +15,41 @@ def main(filePath):
 	# when I run on my computer must start at second index, 0 index 
 	# 	is .DS_Store and 1 index is .txt
 	for file in dir_list[2:]:
-		printContent(dir_path + file)
+		print("Currently Working on " + file + " file.")
+		nzdCheck = nzdChecker(file)
+		printContent(dir_path + file, nzdCheck)
 
 # Opens file in directory and uses beautiful soup to find the module Column
-def printContent(fileArg):
-	moduleCol = " "
-	objectTypeCol = "temp"
-	updateCol = " "
-	objectNameCol = " "
-	subobjectTypeCol = ""
-	subobjectNameCol = ""
+def printContent(fileArg, nzdCheck):
+	moduleCol = " " # This is Working
+	objectTypeCol = "temp" # This is Working
+	updateCol = " " # This is Working
+	objectNameCol = " " # This is Working
+	subobjectTypeCol = "" # Needs Work
+	subobjectNameCol = "" # Needs Workd
+
 	with open(fileArg, 'r') as f:
 		fileContents = f.read()
 
 		soup = BeautifulSoup(fileContents, 'html.parser')
 
-		tempModuleCol = soup.find(lambda tag:tag.name=="p" and "Product:" in tag.text)
+		# Gets the appropriate module column data
+		tempModuleCol = soup.find(lambda tag:tag.name=="p" and "Product:" 
+			                      in tag.text)
 		if tempModuleCol is None:
 			return
-		moduleCol = moduleColSplitter(tempModuleCol.text)
+		moduleCol = moduleColSplitter(tempModuleCol.text, nzdCheck)
 
+		# Begins iterating through tables
 		for tr in soup.find_all('tr'):
+
+			# Gets appropriate object_type column data
 			objTyList = []
 			for th in tr.find_all('th'):
 				objTyList.append(th.text)
 			if(len(objTyList) > 0):
 				objectTypeCol = objTyList[0].replace(" ", "_")
+
 			flag = 0;
 			data = []
 			data.append(moduleCol)
@@ -51,7 +60,8 @@ def printContent(fileArg):
 					flag = 1;
 				elif(len(data) == 2 and flag == 1):
 					updateColChecker = updateColSplitter(td.text.strip())
-					if(updateColChecker[0] != "Added" and updateColChecker[0] != "Changed" and updateColChecker[0] != "Removed"):
+					if(updateColChecker[0] != "Added" and updateColChecker[0]
+					   != "Changed" and updateColChecker[0] != "Removed"):
 						if(updateColChecker[1] == "Changes"):
 							updateCol = "Changed"
 						else:
@@ -66,14 +76,24 @@ def printContent(fileArg):
 				data.append(subobjectNameCol)
 				csvWriter.writerow(data)
 
-		print(moduleCol)
 
+
+
+def nzdChecker(fileName):
+	if("nonNZD" in fileName):
+		return 1
+	return 0;
 
 # Stome string manipulation to Parse and get correct productName
-def moduleColSplitter(temp):
+def moduleColSplitter(temp, nzdCheck):
 	moduleCol = temp[8:]
 	tempModuleCol = moduleCol.split(" ", 1)
 	moduleCol = tempModuleCol[0]
+	if(nzdCheck == 0):
+		moduleCol += "_NZD"
+	else:
+		moduleCol += "_nonNZD"
+
 	return moduleCol
 
 def updateColSplitter(change):
@@ -90,10 +110,7 @@ colHeaders = ["Module", "Object_Type", "Update", "Object_Name",
 csvWriter = csv.writer(open(outFile, 'w'))
 csvWriter.writerow(colHeaders)
 
-# Gets commandLine Arg
-# 
-# Folder containing all relevant files must be in the same 
-#	folder that the script is located
+# calls main methon using commandLine Arg
 main(sys.argv[1])
 
 csvWriter.close()
