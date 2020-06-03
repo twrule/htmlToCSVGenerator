@@ -50,16 +50,23 @@ def printContent(fileArg, nzdCheck):
 			if(len(objTyList) > 0):
 				objectTypeCol = objTyList[0].replace(" ", "_")
 
+			# flag used for appending columns in the correct order
 			flag = 0;
 			data = []
 			data.append(moduleCol)
 			data.append(objectTypeCol)
+
 			for td in tr.find_all('td'):
 				if(len(data) == 2 and flag == 0):
 					objectNameCol = td.text.strip()
 					flag = 1;
 				elif(len(data) == 2 and flag == 1):
 					updateColChecker = updateColSplitter(td.text.strip())
+					# If we get into below if statement that means there are
+					#   subobjects and whatnot.  Must get a recursive-type
+					#   function going and also empty data becuase everything
+					#   will be appended in the recursive section and don't
+					#   want it to do duplicate work
 					if(updateColChecker[0] != "Added" and updateColChecker[0]
 					   != "Changed" and updateColChecker[0] != "Removed"):
 						if(updateColChecker[1] == "Changes"):
