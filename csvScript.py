@@ -1,4 +1,4 @@
-import sys, os, csv
+import sys, os, csv, re
 from bs4 import BeautifulSoup
 
 def main(filePath):
@@ -67,12 +67,18 @@ def printContent(fileArg, nzdCheck):
 					#   function going and also empty data becuase everything
 					#   will be appended in the recursive section and don't
 					#   want it to do duplicate work
-					if(updateColChecker[0] != "Added" and updateColChecker[0]
-					   != "Changed" and updateColChecker[0] != "Removed"):
-						if(updateColChecker[1] == "Changes"):
+					if(len(updateColChecker) > 3):
+						if(updateColChecker[1].strip() == "Changes"):
 							updateCol = "Changed"
+							subobjectTypeParser(td, moduleCol, 
+								objectTypeCol, updateCol, objectNameCol)
+							del data[:]
+
 						else:
 							updateCol = updateColChecker[1]
+							subobjectTypeParser(td, moduleCol, 
+								objectTypeCol, updateCol, objectNameCol)
+							del data[:]
 					else:
 						updateCol = updateColChecker[0]
 					data.append(updateCol)
@@ -82,8 +88,6 @@ def printContent(fileArg, nzdCheck):
 				data.append(subobjectTypeCol)
 				data.append(subobjectNameCol)
 				csvWriter.writerow(data)
-
-
 
 
 def nzdChecker(fileName):
@@ -104,9 +108,80 @@ def moduleColSplitter(temp, nzdCheck):
 	return moduleCol
 
 def updateColSplitter(change):
-	updateCol = change.split(" ", 2)
+	updateCol = change.split(" ")
 	return updateCol
 
+def subobjectTypeParser(phrase, moduleCol, 
+						objectTypeCol, updateCol, objectNameCol):
+	subobjectType, subobjectName = "", ""
+	# used for added/removed/changed etc
+	newUpdateList = phrase.find_all('font', style="color: rgb(58, 90, 135); font-weight: bold;")
+	# used for string parsing
+	newUpdatePhrase = phrase.find_all('font', style="color: rgb(58, 90, 135); font-weight: bold;")
+
+	for i in range(len(newUpdatePhrase)):
+		newUpdatePhrase[i] = newUpdatePhrase[i].text
+
+	for i in range(len(newUpdateList)):
+		newUpdateList[i] = newUpdateList[i].text.strip()
+		temp = newUpdateList[i].split(" ", 2)
+		if(len(temp) > 1):
+			newUpdateList[i] = temp[1]
+		else:
+			newUpdateList = temp[0]
+
+	subObjectTypeList = phrase.find_all('strong')
+	for i in range(len(subObjectTypeList)):
+		subObjectTypeList[i] = subObjectTypeList[i].text.strip()
+
+	phrase = phrase.text.strip()
+	
+	updateCol = newUpdateList[0]
+	subobjectType = subObjectTypeList[0]
+
+	while(len(subObjectTypeList) > 0):
+		lenCheck = len(subobjectType)
+
+		updateLoc = 0
+
+		for i in range(len(newUpdatePhrase)):
+			temperer = newUpdatePhrase[i]
+			newer = len(temperer)
+
+			temp = phrase.find(newUpdatePhrase[i])
+			if(temp > updateLoc):
+				updateLoc = temp
+
+			if(len(phrase) > newer and phrase[:newer] == newUpdatePhrase[i]):
+				updateCol = newUpdateList[i]
+				phrase = phrase[newer:]
+
+		if(len(subObjectTypeList) > 1):
+			phrase = phrase[len(subObjectTypeList[0])+1:].strip()
+			figure = phrase.find(subObjectTypeList[1])
+			if(figure < updateLoc):
+				subobjectName = phrase[:figure]
+			else:
+				subobjectName = phrase[:updateLoc]
+			if(figure > updateLoc):
+				phrase = phrase[figure:]
+			else:
+				phrase = phrase[updateLoc:]
+		else:
+			phrase = phrase[len(subObjectTypeList[0]) + 1:].strip()
+			subobjectName = phrase
+
+		subObjectType = subObjectTypeList[0]
+		if("Att" in subobjectName):
+			subobjectName = subobjectName[:-3]
+
+		data = [moduleCol, objectTypeCol, updateCol, objectNameCol]
+		data.append(subObjectType)
+		data.append(subobjectName)
+
+		csvWriter.writerow(data)
+		subObjectTypeList.remove(subObjectTypeList[0])
+		updateLoc = 0
 
 
 
